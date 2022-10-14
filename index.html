@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Air Beats</title>
+  <style>
+    html,
+    body {
+      background-color: white;
+      color: black;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+
+    #video {
+      transform: scaleX(-1) translateX(50%);
+      position: fixed;
+      height: 100%;
+      object-fit: cover;
+      width: 100%;
+      left: 50%;
+      bottom: 0;
+      height: 100%;
+      /* position: fixed;
+        height: 100%;
+        width: 100%;
+        object-fit: cover; */
+    }
+
+    #startbutton {
+      width: 200px;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      border-radius: 30px;
+      border: none;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
+      position: fixed;
+      bottom: 30px;
+      left: calc(50%);
+      transform:translateX(-50%)
+    }
+    
+    #instruction {
+      min-width: 300px;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      border-radius: 30px;
+      border: none;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
+      position: fixed;
+      top: 30px;
+      left: calc(50%);
+      transform:translateX(-50%);
+      display:none;
+    }
+  </style>
+
+  <!--     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script> -->
+  <script src="utils/tfjs-core"></script>
+  <script src="utils/tfjs-converter"></script>
+  <script src="utils/tfjs-backend-webgl"></script>
+  <script src="utils/pose-detection"></script>
+  <!-- <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      crossorigin="anonymous"
+    ></script> -->
+  <script src="camera.js"></script>
+  <script src="detector.js"></script>
+</head>
+
+<body>
+  <!-- <video
+      class="input_video"
+      style="float:left;position:absolute;"
+      autoplay
+    ></video> -->
+  <video id="video" class="input_video" playsinline></video>
+  <div id="instruction"></div>
+  <button id="startbutton">Start</button>
+
+  <script>
+    const video = document.getElementById("video");
+
+    var detector;
+    var camera;
+    var rafId;
+
+    async function loadModel() {
+      detectorConfig = {
+        modelUrl: "/models/lightning/model.json",
+        // modelUrl: "/models/thunder/model.json",
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+        // modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER
+      };
+      detector = await poseDetection.createDetector(
+        poseDetection.SupportedModels.MoveNet,
+        detectorConfig
+      );
+      detector = new PoseDetector(detector);
+      console.log("Model loaded");
+    }
+
+    async function loadCamera() {
+      camera = await Camera.setupCamera({
+        targetFPS: 60,
+        size: { width: 1280, height: 720 },
+        mobileSize: { width: 360, height: 270 }
+      });
+      console.log("Camera loaded");
+    }
+
+    async function predict() {
+      // const poses = await detector.estimatePoses(image);
+      // const video = document.getElementById("video");
+      // const poses = await detector.estimatePoses(video);
+      // var predictions = await detector.estimatePoses(video, {
+      //   flipHorizontal: false
+      // });
+      var predictions = await detector.estimatePoses(camera.video);
+      if (predictions.length > 0) {
+        // console.log(predictions[0].keypoints[0].x);
+        // console.log(
+        //   predictions[0].keypoints[3].y - predictions[0].keypoints[4].y
+        // );
+        // console.log(predictions[0].keypoints[0]);
+        // if (
+        //   Math.abs(
+        //     predictions[0].keypoints[9].x - predictions[0].keypoints[10].x
+        //   ) < 100
+        // ) {
+        //   console.log("clap");
+        // }
+      }
+    }
+
+    async function startPrediction() {
+      await predict();
+      rafId = requestAnimationFrame(startPrediction);
+    }
+
+    loadCamera().then(() => loadModel().then(() => startPrediction()));
+
+    var startBtn = document.querySelector("#startbutton");
+
+    startBtn.onclick = function() {
+      /*
+      var headDefault = [[RIGHTEAR, "y", 0, LEFTEAR, "y"]];
+      var headRight = [[RIGHTEAR, "y", 50, LEFTEAR, "y"]];
+      var headLeft = [[LEFTEAR, "y", 50, RIGHTEAR, "y"]];
+      */
+/*
+      var headDefaultConditions = [[RIGHTEAR, "y", ["<>", 10], LEFTEAR, "y"]];
+      var headRightConditions = [[RIGHTEAR, "y", [">", 50], LEFTEAR, "y"]];
+      var headLeftConditions = [[LEFTEAR, "y", [">", 50], RIGHTEAR, "y"]];
+      
+      var headRight = new Pose("HeadRight", headRightConditions, "Tilt your head to the right");
+      var headLeft = new Pose("HeadLeft", headLeftConditions, "Tilt your head to the left");
+*/
+
+/*
+      var headRoutine = [headDefault, headRight, headLeft];
+      
+      var headRoutine = [headRight, headLeft];
+*/
+/*
+      var headPoses = [headRight, headLeft];
+      
+      var headRoutine = new Routine("Head Routine", headPoses);
+      
+      
+      console.log("Starting Routine");
+      console.log(headRoutine);
+      detector.detectRoutine(headRoutine, 0, this);
+*/
+      detector.detectGuitar();
+    };
+  </script>
+</body>
+
+</html>
